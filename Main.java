@@ -81,18 +81,9 @@ public class Main extends Application {
 
 	public static void updateFrame() {
 		gc.setFill(Color.GREEN);	// Draw score banner
-		gc.fillRect(0, 0, columns * tilesize, tilesize);
-		for (int i = 0; i < columns; i++)	// Draw checkered background
-			for (int j = 0; j < rows; j++) {
-				if ((i + j) % 2 == 0)
-					gc.setFill(Color.web("AAD753"));
-				else
-					gc.setFill(Color.web("A2D14B"));
-				gc.fillRect(i * tilesize, (j + 1) * tilesize, tilesize, tilesize);
-			}
-		for (int i = snake.size() - 1; i >= 1; i--)		// Update snake position
-			snake.get(i).setLocation(snake.get(i - 1));
-		Point first = new Point(snake.get(0));
+		gc.fillRect(0, 0, columns * tilesize, tilesize);	
+		
+		Point first = new Point(snake.get(0));	// Update snake direction
 		if (direction == 0)
 			first.x++;
 		else if (direction == 1)
@@ -105,7 +96,16 @@ public class Main extends Application {
 			gameOver(false);
 			return;
 		}
+		
+		for (int i = snake.size() - 1; i >= 1; i--)		// Update snake position
+			snake.get(i).setLocation(snake.get(i - 1));
 		snake.set(0, first);
+		
+		for (int i = 1; i < snake.size(); i++)		// Ran into itself
+			if (snake.get(0).equals(snake.get(i))) {
+				gameOver(false);
+				return;
+			}
 
 		boolean ate = false;
 		if (apple.equals(snake.get(0))) {	// Ate an apple
@@ -121,22 +121,26 @@ public class Main extends Application {
 				snake.add(new Point(last.x, last.y + 1));
 			if(snake.size() < rows * columns)
 				generateApple();
-		}
-
-		for (int i = 1; i < snake.size(); i++)		// Ran into itself
-			if (snake.get(0).x == snake.get(i).x && snake.get(0).y == snake.get(i).y) {
-				gameOver(false);
+			else {
+				gameOver(true);		// Game won
 				return;
+			}
+		}
+		
+		for (int i = 0; i < columns; i++)		// Draw checkered background
+			for (int j = 0; j < rows; j++) {
+				if ((i + j) % 2 == 0)
+					gc.setFill(Color.web("AAD753"));
+				else
+					gc.setFill(Color.web("A2D14B"));
+				gc.fillRect(i * tilesize, (j + 1) * tilesize, tilesize, tilesize);
 			}
 
 		gc.setFill(colors[color]);	// Draw apple
 		gc.fillOval(apple.x * tilesize, (apple.y + 1) * tilesize, tilesize - 2, tilesize - 2);
 
 		drawSnake(ate);		// Draw snake
-		
-		updateScore();		
-		if (snake.size() == rows * columns)		// Game won
-			gameOver(true);
+		updateScore();
 	}
 
 	public static void updateScore() {
@@ -176,27 +180,27 @@ public class Main extends Application {
 			snake.remove(snake.size() - 1);
 			Point s = snake.get(snake.size() - 1);
 			if(s.x + 1 >= 0 && s.x + 1 < columns && !snake.contains(new Point(s.x + 1, s.y)))
-				snake.add(snake.size() - 1, new Point(s.x + 1, s.y));
+				snake.add(new Point(s.x + 1, s.y));
 			else if(s.x - 1 >= 0 && s.x - 1 < columns && !snake.contains(new Point(s.x - 1, s.y)))
-				snake.add(snake.size() - 1, new Point(s.x - 1, s.y));
+				snake.add(new Point(s.x - 1, s.y));
 			else if(s.y + 1 >= 0 && s.y + 1 < rows && !snake.contains(new Point(s.x, s.y + 1)))
-				snake.add(snake.size() - 1, new Point(s.x, s.y + 1));
+				snake.add(new Point(s.x, s.y + 1));
 			else
-				snake.add(snake.size() - 1, new Point(s.x, s.y - 1));
+				snake.add(new Point(s.x, s.y - 1));
 		}
 		drawSnake(false);
 		updateScore();
 		gc.setFont(new Font("Monospaced Bold Italic", 50));
 		if (won) {
 			gc.setFill(Color.GREEN);
-			gc.fillText("YOU WIN!", columns * tilesize / 2, rows / 2.0 * tilesize);
+			gc.fillText("YOU WIN!", columns * tilesize / 2, rows* tilesize / 2);
 		} else {
 			gc.setFill(Color.RED);
 			gc.fillOval(snake.get(0).x * tilesize, (snake.get(0).y + 1) * tilesize, tilesize - 2, tilesize - 2);
-			gc.fillText("GAME OVER", columns * tilesize / 2, rows / 2.0 * tilesize);
+			gc.fillText("GAME OVER", columns * tilesize / 2, rows * tilesize / 2);
 		}
 		gc.setFont(new Font("Monospaced Bold Italic", 30));
-		gc.fillText("Press R to restart or Q to quit", columns * tilesize / 2, (rows + 2) / 2.0 * tilesize);
+		gc.fillText("Press R to restart or Q to quit", columns * tilesize / 2, (rows + 2) * tilesize / 2);
 		gameOver = true;
 		t.stop();
 	}
